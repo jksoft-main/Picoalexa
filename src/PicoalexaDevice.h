@@ -1,20 +1,20 @@
-#ifndef EspalexaDevice_h
-#define EspalexaDevice_h
+#ifndef PicoalexaDevice_h
+#define PicoalexaDevice_h
 
 #include "Arduino.h"
 #include <functional>
 
-class EspalexaDevice;
+class PicoalexaDevice;
 
 typedef std::function<void(uint8_t b)> BrightnessCallbackFunction;
-typedef std::function<void(EspalexaDevice* d)> DeviceCallbackFunction;
+typedef std::function<void(PicoalexaDevice* d)> DeviceCallbackFunction;
 typedef std::function<void(uint8_t br, uint32_t col)> ColorCallbackFunction;
 
-enum class EspalexaColorMode : uint8_t { none = 0, ct = 1, hs = 2, xy = 3 };
-enum class EspalexaDeviceType : uint8_t { onoff = 0, dimmable = 1, whitespectrum = 2, color = 3, extendedcolor = 4 };
-enum class EspalexaDeviceProperty : uint8_t { none = 0, on = 1, off = 2, bri = 3, hs = 4, ct = 5, xy = 6 };
+enum class PicoalexaColorMode : uint8_t { none = 0, ct = 1, hs = 2, xy = 3 };
+enum class PicoalexaDeviceType : uint8_t { onoff = 0, dimmable = 1, whitespectrum = 2, color = 3, extendedcolor = 4 };
+enum class PicoalexaDeviceProperty : uint8_t { none = 0, on = 1, off = 2, bri = 3, hs = 4, ct = 5, xy = 6 };
 
-class EspalexaDevice {
+class PicoalexaDevice {
 private:
   String _deviceName;
   BrightnessCallbackFunction _callback = nullptr;
@@ -25,20 +25,20 @@ private:
   float _x = 0.5, _y = 0.5;
   uint32_t _rgb = 0;
   uint8_t _id = 0;
-  EspalexaDeviceType _type;
-  EspalexaDeviceProperty _changed = EspalexaDeviceProperty::none;
-  EspalexaColorMode _mode = EspalexaColorMode::xy;
+  PicoalexaDeviceType _type;
+  PicoalexaDeviceProperty _changed = PicoalexaDeviceProperty::none;
+  PicoalexaColorMode _mode = PicoalexaColorMode::xy;
   
 public:
-  EspalexaDevice();
-  ~EspalexaDevice();
-  EspalexaDevice(String deviceName, BrightnessCallbackFunction bcb, uint8_t initialValue =0);
-  EspalexaDevice(String deviceName, DeviceCallbackFunction dcb, EspalexaDeviceType t =EspalexaDeviceType::dimmable, uint8_t initialValue =0);
-  EspalexaDevice(String deviceName, ColorCallbackFunction ccb, uint8_t initialValue =0);
+  PicoalexaDevice();
+  ~PicoalexaDevice();
+  PicoalexaDevice(String deviceName, BrightnessCallbackFunction bcb, uint8_t initialValue =0);
+  PicoalexaDevice(String deviceName, DeviceCallbackFunction dcb, PicoalexaDeviceType t =PicoalexaDeviceType::dimmable, uint8_t initialValue =0);
+  PicoalexaDevice(String deviceName, ColorCallbackFunction ccb, uint8_t initialValue =0);
   
   String getName();
   uint8_t getId();
-  EspalexaDeviceProperty getLastChangedProperty();
+  PicoalexaDeviceProperty getLastChangedProperty();
   uint8_t getValue();
   uint8_t getLastValue(); //last value that was not off (1-255)
   bool    getState();
@@ -55,11 +55,11 @@ public:
   uint8_t getG();
   uint8_t getB();
   uint8_t getW();
-  EspalexaColorMode getColorMode();
-  EspalexaDeviceType getType();
+  PicoalexaColorMode getColorMode();
+  PicoalexaDeviceType getType();
   
   void setId(uint8_t id);
-  void setPropertyChanged(EspalexaDeviceProperty p);
+  void setPropertyChanged(PicoalexaDeviceProperty p);
   void setValue(uint8_t bri);
   void setState(bool onoff);
   void setPercent(uint8_t perc);

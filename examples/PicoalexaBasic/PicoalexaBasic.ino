@@ -1,12 +1,8 @@
 /*
- * This is a basic example on how to use Espalexa and its device declaration methods.
+ * This is a basic example on how to use Picoalexa and its device declaration methods.
  */ 
-#ifdef ARDUINO_ARCH_ESP32
 #include <WiFi.h>
-#else
-#include <ESP8266WiFi.h>
-#endif
-#include <Espalexa.h>
+#include <Picoalexa.h>
 
 // prototypes
 boolean connectWifi();
@@ -22,9 +18,9 @@ const char* password = "wifipassword";
 
 boolean wifiConnected = false;
 
-Espalexa espalexa;
+Picoalexa Picoalexa;
 
-EspalexaDevice* device3; //this is optional
+PicoalexaDevice* device3; //this is optional
 
 void setup()
 {
@@ -35,14 +31,14 @@ void setup()
   if(wifiConnected){
     
     // Define your devices here. 
-    espalexa.addDevice("Light 1", firstLightChanged); //simplest definition, default state off
-    espalexa.addDevice("Light 2", secondLightChanged, 255); //third parameter is beginning state (here fully on)
+    Picoalexa.addDevice("Light 1", firstLightChanged); //simplest definition, default state off
+    Picoalexa.addDevice("Light 2", secondLightChanged, 255); //third parameter is beginning state (here fully on)
     
-    device3 = new EspalexaDevice("Light 3", thirdLightChanged); //you can also create the Device objects yourself like here
-    espalexa.addDevice(device3); //and then add them
+    device3 = new PicoalexaDevice("Light 3", thirdLightChanged); //you can also create the Device objects yourself like here
+    Picoalexa.addDevice(device3); //and then add them
     device3->setValue(128); //this allows you to e.g. update their state value at any time!
 
-    espalexa.begin();
+    Picoalexa.begin();
     
   } else
   {
@@ -55,7 +51,7 @@ void setup()
  
 void loop()
 {
-   espalexa.loop();
+   Picoalexa.loop();
    delay(1);
 }
 

@@ -1,14 +1,9 @@
 /*
- * This is an example on how to use Espalexa alongside an ESP8266WebServer.
+ * This is an example on how to use Picoalexa alongside an ESP8266WebServer.
  */ 
-#include <Espalexa.h>
- #ifdef ARDUINO_ARCH_ESP32
+#include <Picoalexa.h>
 #include <WiFi.h>
 #include <WebServer.h> //if you get an error here please update to ESP32 arduino core 1.0.0
-#else
-#include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
-#endif
 
 // prototypes
 boolean connectWifi();
@@ -22,12 +17,8 @@ const char* password = "wifipassword";
 
 boolean wifiConnected = false;
 
-Espalexa espalexa;
-#ifdef ARDUINO_ARCH_ESP32
+Picoalexa Picoalexa;
 WebServer server(80);
-#else
-ESP8266WebServer server(80);
-#endif
 
 void setup()
 {
@@ -43,7 +34,7 @@ void setup()
     server.send(200, "text/plain", "This is a second subpage you may have.");
     });
     server.onNotFound([](){
-      if (!espalexa.handleAlexaApiCall(server.uri(),server.arg(0))) //if you don't know the URI, ask espalexa whether it is an Alexa control request
+      if (!Picoalexa.handleAlexaApiCall(server.uri(),server.arg(0))) //if you don't know the URI, ask Picoalexa whether it is an Alexa control request
       {
         //whatever you want to do with 404s
         server.send(404, "text/plain", "Not found");
@@ -51,10 +42,10 @@ void setup()
     });
 
     // Define your devices here.
-    espalexa.addDevice("My Light 1", firstLightChanged); //simplest definition, default state off
+    Picoalexa.addDevice("My Light 1", firstLightChanged); //simplest definition, default state off
 
-    espalexa.begin(&server); //give espalexa a pointer to your server object so it can use your server instead of creating its own
-    //server.begin(); //omit this since it will be done by espalexa.begin(&server)
+    Picoalexa.begin(&server); //give Picoalexa a pointer to your server object so it can use your server instead of creating its own
+    //server.begin(); //omit this since it will be done by Picoalexa.begin(&server)
   } else
   {
     while (1)
@@ -67,8 +58,8 @@ void setup()
  
 void loop()
 {
-   //server.handleClient() //you can omit this line from your code since it will be called in espalexa.loop()
-   espalexa.loop();
+   //server.handleClient() //you can omit this line from your code since it will be called in Picoalexa.loop()
+   Picoalexa.loop();
    delay(1);
 }
 

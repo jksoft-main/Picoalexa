@@ -1,16 +1,12 @@
 /*
- * An example that demonstrates most capabilities of Espalexa v2.4.0
+ * An example that demonstrates most capabilities of Picoalexa v2.4.0
  */ 
-#ifdef ARDUINO_ARCH_ESP32
 #include <WiFi.h>
-#else
-#include <ESP8266WiFi.h>
-#endif
-//#define ESPALEXA_ASYNC            //uncomment for async operation (can fix empty body issue)
-//#define ESPALEXA_NO_SUBPAGE       //disable /espalexa status page
-//#define ESPALEXA_DEBUG            //activate debug serial logging
-//#define ESPALEXA_MAXDEVICES 15    //set maximum devices add-able to Espalexa
-#include <Espalexa.h>
+//#define PICOALEXA_ASYNC            //uncomment for async operation (can fix empty body issue)
+//#define PICOALEXA_NO_SUBPAGE       //disable /Picoalexa status page
+//#define PICOALEXA_DEBUG            //activate debug serial logging
+//#define PICOALEXA_MAXDEVICES 15    //set maximum devices add-able to Picoalexa
+#include <Picoalexa.h>
 
 // Change this!!
 const char* ssid = "...";
@@ -21,18 +17,18 @@ bool connectWifi();
 
 //callback functions
 //new callback type, contains device pointer
-void alphaChanged(EspalexaDevice* dev);
-void betaChanged(EspalexaDevice* dev);
-void gammaChanged(EspalexaDevice* dev);
+void alphaChanged(PicoalexaDevice* dev);
+void betaChanged(PicoalexaDevice* dev);
+void gammaChanged(PicoalexaDevice* dev);
 //you can now use one callback for multiple devices
-void deltaOrEpsilonChanged(EspalexaDevice* dev);
+void deltaOrEpsilonChanged(PicoalexaDevice* dev);
 
 //create devices yourself
-EspalexaDevice* epsilon;
+PicoalexaDevice* epsilon;
 
 bool wifiConnected = false;
 
-Espalexa espalexa;
+Picoalexa Picoalexa;
 
 void setup()
 {
@@ -48,13 +44,13 @@ void setup()
   }
   
   // Define your devices here. 
-  espalexa.addDevice("Alpha", alphaChanged, EspalexaDeviceType::onoff); //non-dimmable device
-  espalexa.addDevice("Beta", betaChanged, EspalexaDeviceType::dimmable, 127); //Dimmable device, optional 4th parameter is beginning state (here fully on)
-  espalexa.addDevice("Gamma", gammaChanged, EspalexaDeviceType::whitespectrum); //color temperature (white spectrum) device
-  espalexa.addDevice("Delta", deltaOrEpsilonChanged, EspalexaDeviceType::color); //color device
+  Picoalexa.addDevice("Alpha", alphaChanged, PicoalexaDeviceType::onoff); //non-dimmable device
+  Picoalexa.addDevice("Beta", betaChanged, PicoalexaDeviceType::dimmable, 127); //Dimmable device, optional 4th parameter is beginning state (here fully on)
+  Picoalexa.addDevice("Gamma", gammaChanged, PicoalexaDeviceType::whitespectrum); //color temperature (white spectrum) device
+  Picoalexa.addDevice("Delta", deltaOrEpsilonChanged, PicoalexaDeviceType::color); //color device
   
-  epsilon = new EspalexaDevice("Epsilon", deltaOrEpsilonChanged, EspalexaDeviceType::extendedcolor); //color + color temperature
-  espalexa.addDevice(epsilon);
+  epsilon = new PicoalexaDevice("Epsilon", deltaOrEpsilonChanged, PicoalexaDeviceType::extendedcolor); //color + color temperature
+  Picoalexa.addDevice(epsilon);
   epsilon->setValue(128); //creating the device yourself allows you to e.g. update their state value at any time!
   
   epsilon->setColor(200); //color temperature in mireds
@@ -62,20 +58,20 @@ void setup()
   epsilon->setColor(14000,255); //color in Hue + Sat
   epsilon->setColorXY(0.50,0.50); //color in XY
 
-  EspalexaDevice* d = espalexa.getDevice(3); //this will get "Delta", the index is zero-based
+  PicoalexaDevice* d = Picoalexa.getDevice(3); //this will get "Delta", the index is zero-based
   d->setPercent(50); //set value "brightness" in percent
 
-  espalexa.begin();
+  Picoalexa.begin();
 }
  
 void loop()
 {
- espalexa.loop();
+ Picoalexa.loop();
  delay(1);
 }
 
 //our callback functions
-void alphaChanged(EspalexaDevice* d) {
+void alphaChanged(PicoalexaDevice* d) {
   if (d == nullptr) return; //this is good practice, but not required
 
   //do what you need to do here
@@ -89,7 +85,7 @@ void alphaChanged(EspalexaDevice* d) {
   }
 }
 
-void betaChanged(EspalexaDevice* d) {
+void betaChanged(PicoalexaDevice* d) {
   if (d == nullptr) return;
 
   uint8_t brightness = d->getValue();
@@ -101,7 +97,7 @@ void betaChanged(EspalexaDevice* d) {
   Serial.println("%");
 }
 
-void gammaChanged(EspalexaDevice* d) {
+void gammaChanged(PicoalexaDevice* d) {
   if (d == nullptr) return;
   Serial.print("C changed to ");
   Serial.print(d->getValue());
@@ -112,7 +108,7 @@ void gammaChanged(EspalexaDevice* d) {
   Serial.println("K)");
 }
 
-void deltaOrEpsilonChanged(EspalexaDevice* d)
+void deltaOrEpsilonChanged(PicoalexaDevice* d)
 {
   if (d == nullptr) return;
 
@@ -137,13 +133,13 @@ void deltaOrEpsilonChanged(EspalexaDevice* d)
     Serial.print(", colormode ");
     switch(d->getColorMode())
     {
-      case EspalexaColorMode::hs:
+      case PicoalexaColorMode::hs:
         Serial.print("hs, "); Serial.print("hue "); Serial.print(d->getHue()); Serial.print(", sat "); Serial.println(d->getSat()); break;
-      case EspalexaColorMode::xy:
+      case PicoalexaColorMode::xy:
         Serial.print("xy, "); Serial.print("x "); Serial.print(d->getX()); Serial.print(", y "); Serial.println(d->getY()); break;
-      case EspalexaColorMode::ct:
+      case PicoalexaColorMode::ct:
         Serial.print("ct, "); Serial.print("ct "); Serial.println(d->getCt()); break;
-      case EspalexaColorMode::none:
+      case PicoalexaColorMode::none:
         Serial.println("none"); break;
     }
   }

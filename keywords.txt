@@ -1,11 +1,11 @@
 #######################################
-# Syntax Coloring Map For Espalexa
+# Syntax Coloring Map For Picoalexa
 #######################################
 
 #######################################
 # Datatypes (KEYWORD1)
 #######################################
 
-Espalexa	KEYWORD1
-EspalexaDevice	KEYWORD1
-EspalexaDeviceType	KEYWORD1
+Picoalexa	KEYWORD1
+PicoalexaDevice	KEYWORD1
+PicoalexaDeviceType	KEYWORD1

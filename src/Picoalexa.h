@@ -1,5 +1,5 @@
-﻿#ifndef Espalexa_h
-#define Espalexa_h
+﻿#ifndef Picoalexa_h
+#define Picoalexa_h
 
 /*
  * Alexa Voice On/Off/Brightness/Color Control. Emulates a Philips Hue bridge to Alexa.
@@ -18,38 +18,24 @@
 
 #include "Arduino.h"
 
-//you can use these defines for library config in your sketch. Just use them before #include <Espalexa.h>
-//#define ESPALEXA_ASYNC
+//you can use these defines for library config in your sketch. Just use them before #include <Picoalexa.h>
+//#define PICOALEXA_ASYNC
 
-//in case this is unwanted in your application (will disable the /espalexa value page)
-//#define ESPALEXA_NO_SUBPAGE
+//in case this is unwanted in your application (will disable the /Picoalexa value page)
+//#define PICOALEXA_NO_SUBPAGE
 
-#ifndef ESPALEXA_MAXDEVICES
- #define ESPALEXA_MAXDEVICES 10 //this limit only has memory reasons, set it higher should you need to, max 128
+#ifndef PICOALEXA_MAXDEVICES
+ #define PICOALEXA_MAXDEVICES 10 //this limit only has memory reasons, set it higher should you need to, max 128
 #endif
 
-//#define ESPALEXA_DEBUG
+//#define PICOALEXA_DEBUG
 
-#ifdef ESPALEXA_ASYNC
- #ifdef ARDUINO_ARCH_ESP32
-  #include <AsyncTCP.h>
- #else
-  #include <ESPAsyncTCP.h>
- #endif
- #include <ESPAsyncWebServer.h>
-#else
- #ifdef ARDUINO_ARCH_ESP32
-  #include <WiFi.h>
-  #include <WebServer.h> //if you get an error here please update to ESP32 arduino core 1.0.0
- #else
-  #include <ESP8266WebServer.h>
-  #include <ESP8266WiFi.h>
- #endif
-#endif
+#include <WiFi.h>
+#include <WebServer.h>
 #include <WiFiUdp.h>
 
-#ifdef ESPALEXA_DEBUG
- #pragma message "Espalexa 2.7.0 debug mode"
+#ifdef PICOALEXA_DEBUG
+ #pragma message "Picoalexa 2.7.0 debug mode"
  #define EA_DEBUG(x)  Serial.print (x)
  #define EA_DEBUGLN(x) Serial.println (x)
 #else
@@ -57,62 +43,54 @@
  #define EA_DEBUGLN(x)
 #endif
 
-#include "EspalexaDevice.h"
+#include "PicoalexaDevice.h"
 
 #define DEVICE_UNIQUE_ID_LENGTH 12
 
-class Espalexa {
+class Picoalexa {
 private:
   //private member vars
-  #ifdef ESPALEXA_ASYNC
-  AsyncWebServer* serverAsync;
-  AsyncWebServerRequest* server; //this saves many #defines
-  String body = "";
-  #elif defined ARDUINO_ARCH_ESP32
   WebServer* server;
-  #else
-  ESP8266WebServer* server;
-  #endif
   uint8_t currentDeviceCount = 0;
   bool discoverable = true;
   bool udpConnected = false;
 
-  EspalexaDevice* devices[ESPALEXA_MAXDEVICES] = {};
+  PicoalexaDevice* devices[PICOALEXA_MAXDEVICES] = {};
   //Keep in mind that Device IDs go from 1 to DEVICES, cpp arrays from 0 to DEVICES-1!!
   
-  WiFiUDP espalexaUdp;
+  WiFiUDP PicoalexaUdp;
   IPAddress ipMulti;
   uint32_t mac24; //bottom 24 bits of mac
   String escapedMac=""; //lowercase mac address
   
   //private member functions
-  const char* modeString(EspalexaColorMode m)
+  const char* modeString(PicoalexaColorMode m)
   {
-    if (m == EspalexaColorMode::xy) return "xy";
-    if (m == EspalexaColorMode::hs) return "hs";
+    if (m == PicoalexaColorMode::xy) return "xy";
+    if (m == PicoalexaColorMode::hs) return "hs";
     return "ct";
   }
   
-  const char* typeString(EspalexaDeviceType t)
+  const char* typeString(PicoalexaDeviceType t)
   {
     switch (t)
     {
-      case EspalexaDeviceType::dimmable:      return "Dimmable light";
-      case EspalexaDeviceType::whitespectrum: return "Color temperature light";
-      case EspalexaDeviceType::color:         return "Color light";
-      case EspalexaDeviceType::extendedcolor: return "Extended color light";
+      case PicoalexaDeviceType::dimmable:      return "Dimmable light";
+      case PicoalexaDeviceType::whitespectrum: return "Color temperature light";
+      case PicoalexaDeviceType::color:         return "Color light";
+      case PicoalexaDeviceType::extendedcolor: return "Extended color light";
       default: return "";
     }
   }
   
-  const char* modelidString(EspalexaDeviceType t)
+  const char* modelidString(PicoalexaDeviceType t)
   {
     switch (t)
     {
-      case EspalexaDeviceType::dimmable:      return "LWB010";
-      case EspalexaDeviceType::whitespectrum: return "LWT010";
-      case EspalexaDeviceType::color:         return "LST001";
-      case EspalexaDeviceType::extendedcolor: return "LCT015";
+      case PicoalexaDeviceType::dimmable:      return "LWB010";
+      case PicoalexaDeviceType::whitespectrum: return "LWT010";
+      case PicoalexaDeviceType::color:         return "LST001";
+      case PicoalexaDeviceType::extendedcolor: return "LCT015";
       default: return "";
     }
   }
@@ -128,7 +106,7 @@ private:
   // construct 'globally unique' Json dict key fitting into signed int
   inline int encodeLightKey(uint8_t idx)
   {
-    static_assert(ESPALEXA_MAXDEVICES <= 128, "");
+    static_assert(PICOALEXA_MAXDEVICES <= 128, "");
     return (mac24<<7) | idx;
   }
 
@@ -139,7 +117,7 @@ private:
   }
 
   //device JSON string: color+temperature device emulates LCT015, dimmable device LWB010, (TODO: on/off Plug 01, color temperature device LWT010, color device LST001)
-  void deviceJsonString(EspalexaDevice* dev, char* buf)
+  void deviceJsonString(PicoalexaDevice* dev, char* buf)
   {
     char buf_lightid[27];
     encodeLightId(dev->getId() + 1, buf_lightid);
@@ -152,7 +130,7 @@ private:
       
     char buf_ct[16] = "";
     //white spectrum support
-    if (static_cast<uint8_t>(dev->getType()) > 1 && dev->getType() != EspalexaDeviceType::color)
+    if (static_cast<uint8_t>(dev->getType()) > 1 && dev->getType() != PicoalexaDeviceType::color)
       sprintf(buf_ct, ",\"ct\":%u", dev->getCt());
     
     char buf_cm[20] = "";
@@ -161,21 +139,21 @@ private:
     
     sprintf_P(buf, PSTR("{\"state\":{\"on\":%s,\"bri\":%u%s%s,\"alert\":\"none%s\",\"mode\":\"homeautomation\",\"reachable\":true},"
                    "\"type\":\"%s\",\"name\":\"%s\",\"modelid\":\"%s\",\"manufacturername\":\"Philips\",\"productname\":\"E%u"
-                   "\",\"uniqueid\":\"%s\",\"swversion\":\"espalexa-2.7.0\"}")
+                   "\",\"uniqueid\":\"%s\",\"swversion\":\"Picoalexa-2.7.0\"}")
                    
     , (dev->getValue())?"true":"false", dev->getLastValue()-1, buf_col, buf_ct, buf_cm, typeString(dev->getType()),
     dev->getName().c_str(), modelidString(dev->getType()), static_cast<uint8_t>(dev->getType()), buf_lightid);
   }
   
-  //Espalexa status page /espalexa
-  #ifndef ESPALEXA_NO_SUBPAGE
+  //Picoalexa status page /Picoalexa
+  #ifndef PICOALEXA_NO_SUBPAGE
   void servePage()
   {
-    EA_DEBUGLN("HTTP Req espalexa ...\n");
-    String res = "Hello from Espalexa!\r\n\r\n";
+    EA_DEBUGLN("HTTP Req Picoalexa ...\n");
+    String res = "Hello from Picoalexa!\r\n\r\n";
     for (int i=0; i<currentDeviceCount; i++)
     {
-      EspalexaDevice* dev = devices[i];
+      PicoalexaDevice* dev = devices[i];
       res += "Value of device " + String(i+1) + " (" + dev->getName() + "): " + String(dev->getValue()) + " (" + typeString(dev->getType());
       if (static_cast<uint8_t>(dev->getType()) > 1) //color support
       {
@@ -184,9 +162,9 @@ private:
       }
       res += ")\r\n";
     }
-    res += "\r\nFree Heap: " + (String)ESP.getFreeHeap();
+    res += "\r\nFree Heap: " + (String)rp2040.getFreeHeap();
     res += "\r\nUptime: " + (String)millis();
-    res += "\r\n\r\nEspalexa library v2.7.0 by Christian Schwinne 2021";
+    res += "\r\n\r\nPicoalexa library v2.7.0 by Christian Schwinne 2021";
     server->send(200, "text/plain", res);
   }
   #endif
@@ -195,16 +173,10 @@ private:
   void serveNotFound()
   {
     EA_DEBUGLN("Not-Found HTTP call:");
-    #ifndef ESPALEXA_ASYNC
     EA_DEBUGLN("URI: " + server->uri());
     EA_DEBUGLN("Body: " + server->arg(0));
     if(!handleAlexaApiCall(server->uri(), server->arg(0)))
-    #else
-    EA_DEBUGLN("URI: " + server->url());
-    EA_DEBUGLN("Body: " + body);
-    if(!handleAlexaApiCall(server))
-    #endif
-      server->send(404, "text/plain", "Not Found (espalexa)");
+      server->send(404, "text/plain", "Not Found (Picoalexa)");
   }
 
   //send description.xml device property page
@@ -222,7 +194,7 @@ private:
         "<URLBase>http://%s:80/</URLBase>"
         "<device>"
           "<deviceType>urn:schemas-upnp-org:device:Basic:1</deviceType>"
-          "<friendlyName>Espalexa (%s:80)</friendlyName>"
+          "<friendlyName>Picoalexa (%s:80)</friendlyName>"
           "<manufacturer>Royal Philips Electronics</manufacturer>"
           "<manufacturerURL>http://www.philips.com</manufacturerURL>"
           "<modelDescription>Philips hue Personal Wireless Lighting</modelDescription>"
@@ -244,42 +216,18 @@ private:
   //init the server
   void startHttpServer()
   {
-    #ifdef ESPALEXA_ASYNC
-    if (serverAsync == nullptr) {
-      serverAsync = new AsyncWebServer(80);
-      serverAsync->onNotFound([=](AsyncWebServerRequest *request){server = request; serveNotFound();});
-    }
-    
-    serverAsync->onRequestBody([=](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
-      char b[len +1];
-      b[len] = 0;
-      memcpy(b, data, len);
-      body = b; //save the body so we can use it for the API call
-      EA_DEBUG("Received body: ");
-      EA_DEBUGLN(body);
-    });
-    #ifndef ESPALEXA_NO_SUBPAGE
-    serverAsync->on("/espalexa", HTTP_GET, [=](AsyncWebServerRequest *request){server = request; servePage();});
-    #endif
-    serverAsync->on("/description.xml", HTTP_GET, [=](AsyncWebServerRequest *request){server = request; serveDescription();});
-    serverAsync->begin();
-    
-    #else
+
     if (server == nullptr) {
-      #ifdef ARDUINO_ARCH_ESP32
       server = new WebServer(80);
-      #else
-      server = new ESP8266WebServer(80);  
-      #endif
       server->onNotFound([=](){serveNotFound();});
     }
 
-    #ifndef ESPALEXA_NO_SUBPAGE
-    server->on("/espalexa", HTTP_GET, [=](){servePage();});
+    #ifndef PICOALEXA_NO_SUBPAGE
+    server->on("/Picoalexa", HTTP_GET, [=](){servePage();});
     #endif
     server->on("/description.xml", HTTP_GET, [=](){serveDescription();});
     server->begin();
-    #endif
+
   }
 
   //respond to UDP SSDP M-SEARCH
@@ -301,30 +249,20 @@ private:
       "USN: uuid:2f402f80-da50-11e1-9b23-%s::upnp:rootdevice\r\n" // _uuid::_deviceType
       "\r\n"),s,escapedMac.c_str(),escapedMac.c_str());
 
-    espalexaUdp.beginPacket(espalexaUdp.remoteIP(), espalexaUdp.remotePort());
-    #ifdef ARDUINO_ARCH_ESP32
-    espalexaUdp.write((uint8_t*)buf, strlen(buf));
-    #else
-    espalexaUdp.write(buf);
-    #endif
-    espalexaUdp.endPacket();                    
+    PicoalexaUdp.beginPacket(PicoalexaUdp.remoteIP(), PicoalexaUdp.remotePort());
+    PicoalexaUdp.write((uint8_t*)buf, strlen(buf));
+    PicoalexaUdp.endPacket();                    
   }
 
 public:
-  Espalexa(){}
+  Picoalexa(){}
 
   //initialize interfaces
-  #ifdef ESPALEXA_ASYNC
-  bool begin(AsyncWebServer* externalServer = nullptr)
-  #elif defined ARDUINO_ARCH_ESP32
   bool begin(WebServer* externalServer = nullptr)
-  #else
-  bool begin(ESP8266WebServer* externalServer = nullptr)
-  #endif
   {
-    EA_DEBUGLN("Espalexa Begin...");
+    EA_DEBUGLN("Picoalexa Begin...");
     EA_DEBUG("MAXDEVICES ");
-    EA_DEBUGLN(ESPALEXA_MAXDEVICES);
+    EA_DEBUGLN(PICOALEXA_MAXDEVICES);
     escapedMac = WiFi.macAddress();
     escapedMac.replace(":", "");
     escapedMac.toLowerCase();
@@ -332,16 +270,8 @@ public:
     String macSubStr = escapedMac.substring(6, 12);
     mac24 = strtol(macSubStr.c_str(), 0, 16);
 
-    #ifdef ESPALEXA_ASYNC
-    serverAsync = externalServer;
-    #else
     server = externalServer;
-    #endif
-    #ifdef ARDUINO_ARCH_ESP32
-    udpConnected = espalexaUdp.beginMulticast(IPAddress(239, 255, 255, 250), 1900);
-    #else
-    udpConnected = espalexaUdp.beginMulticast(WiFi.localIP(), IPAddress(239, 255, 255, 250), 1900);
-    #endif
+    udpConnected = PicoalexaUdp.beginMulticast(IPAddress(239, 255, 255, 250), 1900);
 
     if (udpConnected){
       
@@ -355,22 +285,20 @@ public:
 
   //service loop
   void loop() {
-    #ifndef ESPALEXA_ASYNC
     if (server == nullptr) return; //only if begin() was not called
     server->handleClient();
-    #endif
     
     if (!udpConnected) return;   
-    int packetSize = espalexaUdp.parsePacket();    
+    int packetSize = PicoalexaUdp.parsePacket();    
     if (packetSize < 1) return; //no new udp packet
     
     EA_DEBUGLN("Got UDP!");
 
     unsigned char packetBuffer[packetSize+1]; //buffer to hold incoming udp packet
-    espalexaUdp.read(packetBuffer, packetSize);
+    PicoalexaUdp.read(packetBuffer, packetSize);
     packetBuffer[packetSize] = 0;
   
-    espalexaUdp.flush();
+    PicoalexaUdp.flush();
     if (!discoverable) return; //do not reply to M-SEARCH if not discoverable
   
     const char* request = (const char *) packetBuffer;
@@ -388,11 +316,11 @@ public:
   }
 
   // returns device index or 0 on failure
-  uint8_t addDevice(EspalexaDevice* d)
+  uint8_t addDevice(PicoalexaDevice* d)
   {
     EA_DEBUG("Adding device ");
     EA_DEBUGLN((currentDeviceCount+1));
-    if (currentDeviceCount >= ESPALEXA_MAXDEVICES) return 0;
+    if (currentDeviceCount >= PICOALEXA_MAXDEVICES) return 0;
     if (d == nullptr) return 0;
     d->setId(currentDeviceCount);
     devices[currentDeviceCount] = d;
@@ -404,8 +332,8 @@ public:
   {
     EA_DEBUG("Constructing device ");
     EA_DEBUGLN((currentDeviceCount+1));
-    if (currentDeviceCount >= ESPALEXA_MAXDEVICES) return 0;
-    EspalexaDevice* d = new EspalexaDevice(deviceName, callback, initialValue);
+    if (currentDeviceCount >= PICOALEXA_MAXDEVICES) return 0;
+    PicoalexaDevice* d = new PicoalexaDevice(deviceName, callback, initialValue);
     return addDevice(d);
   }
   
@@ -414,18 +342,18 @@ public:
   {
     EA_DEBUG("Constructing device ");
     EA_DEBUGLN((currentDeviceCount+1));
-    if (currentDeviceCount >= ESPALEXA_MAXDEVICES) return 0;
-    EspalexaDevice* d = new EspalexaDevice(deviceName, callback, initialValue);
+    if (currentDeviceCount >= PICOALEXA_MAXDEVICES) return 0;
+    PicoalexaDevice* d = new PicoalexaDevice(deviceName, callback, initialValue);
     return addDevice(d);
   }
 
 
-  uint8_t addDevice(String deviceName, DeviceCallbackFunction callback, EspalexaDeviceType t = EspalexaDeviceType::dimmable, uint8_t initialValue = 0)
+  uint8_t addDevice(String deviceName, DeviceCallbackFunction callback, PicoalexaDeviceType t = PicoalexaDeviceType::dimmable, uint8_t initialValue = 0)
   {
     EA_DEBUG("Constructing device ");
     EA_DEBUGLN((currentDeviceCount+1));
-    if (currentDeviceCount >= ESPALEXA_MAXDEVICES) return 0;
-    EspalexaDevice* d = new EspalexaDevice(deviceName, callback, t, initialValue);
+    if (currentDeviceCount >= PICOALEXA_MAXDEVICES) return 0;
+    PicoalexaDevice* d = new PicoalexaDevice(deviceName, callback, t, initialValue);
     return addDevice(d);
   }
 
@@ -437,23 +365,9 @@ public:
   }
 
   //basic implementation of Philips hue api functions needed for basic Alexa control
-  #ifdef ESPALEXA_ASYNC
-  bool handleAlexaApiCall(AsyncWebServerRequest* request)
-  {
-    server = request; //copy request reference
-    String req = request->url(); //body from global variable
-    EA_DEBUGLN(request->contentType());
-    if (request->hasParam("body", true)) // This is necessary, otherwise ESP crashes if there is no body
-    {
-      EA_DEBUG("BodyMethod2");
-      body = request->getParam("body", true)->value();
-    }
-    EA_DEBUG("FinalBody: ");
-    EA_DEBUGLN(body);
-  #else
+
   bool handleAlexaApiCall(String req, String body)
   {  
-  #endif
     EA_DEBUGLN("AlexaApiCall");
     if (req.indexOf("api") <0) return false; //return if not an API call
     EA_DEBUGLN("ok");
@@ -475,14 +389,14 @@ public:
       EA_DEBUGLN(devId);
       unsigned idx = decodeLightKey(devId);
       if (idx >= currentDeviceCount) return true; //return if invalid ID
-      EspalexaDevice* dev = devices[idx];
+      PicoalexaDevice* dev = devices[idx];
       
-      dev->setPropertyChanged(EspalexaDeviceProperty::none);
+      dev->setPropertyChanged(PicoalexaDeviceProperty::none);
       
       if (body.indexOf("false")>0) //OFF command
       {
         dev->setValue(0);
-        dev->setPropertyChanged(EspalexaDeviceProperty::off);
+        dev->setPropertyChanged(PicoalexaDeviceProperty::off);
         dev->doCallback();
         return true;
       }
@@ -490,7 +404,7 @@ public:
       if (body.indexOf("true") >0) //ON command
       {
         dev->setValue(dev->getLastValue());
-        dev->setPropertyChanged(EspalexaDeviceProperty::on);
+        dev->setPropertyChanged(PicoalexaDeviceProperty::on);
       }
       
       if (body.indexOf("bri")  >0) //BRIGHTNESS command
@@ -502,31 +416,31 @@ public:
         } else {
          dev->setValue(briL+1); 
         }
-        dev->setPropertyChanged(EspalexaDeviceProperty::bri);
+        dev->setPropertyChanged(PicoalexaDeviceProperty::bri);
       }
       
       if (body.indexOf("xy")   >0) //COLOR command (XY mode)
       {
         dev->setColorXY(body.substring(body.indexOf("[") +1).toFloat(), body.substring(body.indexOf(",0") +1).toFloat());
-        dev->setPropertyChanged(EspalexaDeviceProperty::xy);
+        dev->setPropertyChanged(PicoalexaDeviceProperty::xy);
       }
       
       if (body.indexOf("hue")  >0) //COLOR command (HS mode)
       {
         dev->setColor(body.substring(body.indexOf("hue") +5).toInt(), body.substring(body.indexOf("sat") +5).toInt());
-        dev->setPropertyChanged(EspalexaDeviceProperty::hs);
+        dev->setPropertyChanged(PicoalexaDeviceProperty::hs);
       }
       
       if (body.indexOf("ct")   >0) //COLOR TEMP command (white spectrum)
       {
         dev->setColor(body.substring(body.indexOf("ct") +4).toInt());
-        dev->setPropertyChanged(EspalexaDeviceProperty::ct);
+        dev->setPropertyChanged(PicoalexaDeviceProperty::ct);
       }
       
       dev->doCallback();
       
-      #ifdef ESPALEXA_DEBUG
-      if (dev->getLastChangedProperty() == EspalexaDeviceProperty::none)
+      #ifdef PICOALEXA_DEBUG
+      if (dev->getLastChangedProperty() == PicoalexaDeviceProperty::none)
         EA_DEBUGLN("STATE REQ WITHOUT BODY (likely Content-Type issue #6)");
       #endif
       return true;
@@ -584,8 +498,8 @@ public:
     discoverable = d;
   }
   
-  //get EspalexaDevice at specific index
-  EspalexaDevice* getDevice(uint8_t index)
+  //get PicoalexaDevice at specific index
+  PicoalexaDevice* getDevice(uint8_t index)
   {
     if (index >= currentDeviceCount) return nullptr;
     return devices[index];
@@ -604,7 +518,7 @@ public:
     return perc / 255;
   }
   
-  ~Espalexa(){} //note: Espalexa is NOT meant to be destructed
+  ~Picoalexa(){} //note: Picoalexa is NOT meant to be destructed
 };
 
 #endif

@@ -1,126 +1,126 @@
-//EspalexaDevice Class
+//PicoalexaDevice Class
 
-#include "EspalexaDevice.h"
+#include "PicoalexaDevice.h"
 
-EspalexaDevice::EspalexaDevice(){}
+PicoalexaDevice::PicoalexaDevice(){}
 
-EspalexaDevice::EspalexaDevice(String deviceName, BrightnessCallbackFunction gnCallback, uint8_t initialValue) { //constructor for dimmable device
+PicoalexaDevice::PicoalexaDevice(String deviceName, BrightnessCallbackFunction gnCallback, uint8_t initialValue) { //constructor for dimmable device
   
   _deviceName = deviceName;
   _callback = gnCallback;
   _val = initialValue;
   _val_last = _val;
-  _type = EspalexaDeviceType::dimmable;
+  _type = PicoalexaDeviceType::dimmable;
 }
 
-EspalexaDevice::EspalexaDevice(String deviceName, ColorCallbackFunction gnCallback, uint8_t initialValue) { //constructor for color device
+PicoalexaDevice::PicoalexaDevice(String deviceName, ColorCallbackFunction gnCallback, uint8_t initialValue) { //constructor for color device
   
   _deviceName = deviceName;
   _callbackCol = gnCallback;
   _val = initialValue;
   _val_last = _val;
-  _type = EspalexaDeviceType::extendedcolor;
+  _type = PicoalexaDeviceType::extendedcolor;
 }
 
-EspalexaDevice::EspalexaDevice(String deviceName, DeviceCallbackFunction gnCallback, EspalexaDeviceType t, uint8_t initialValue) { //constructor for general device
+PicoalexaDevice::PicoalexaDevice(String deviceName, DeviceCallbackFunction gnCallback, PicoalexaDeviceType t, uint8_t initialValue) { //constructor for general device
   
   _deviceName = deviceName;
   _callbackDev = gnCallback;
   _type = t;
-  if (t == EspalexaDeviceType::onoff) _type = EspalexaDeviceType::dimmable; //on/off is broken, so make dimmable device instead
-  if (t == EspalexaDeviceType::whitespectrum) _mode = EspalexaColorMode::ct;
+  if (t == PicoalexaDeviceType::onoff) _type = PicoalexaDeviceType::dimmable; //on/off is broken, so make dimmable device instead
+  if (t == PicoalexaDeviceType::whitespectrum) _mode = PicoalexaColorMode::ct;
   _val = initialValue;
   _val_last = _val;
 }
 
-EspalexaDevice::~EspalexaDevice(){/*nothing to destruct*/}
+PicoalexaDevice::~PicoalexaDevice(){/*nothing to destruct*/}
 
-uint8_t EspalexaDevice::getId()
+uint8_t PicoalexaDevice::getId()
 {
   return _id;
 }
 
-EspalexaColorMode EspalexaDevice::getColorMode()
+PicoalexaColorMode PicoalexaDevice::getColorMode()
 {
   return _mode;
 }
 
-EspalexaDeviceType EspalexaDevice::getType()
+PicoalexaDeviceType PicoalexaDevice::getType()
 {
   return _type;
 }
 
-String EspalexaDevice::getName()
+String PicoalexaDevice::getName()
 {
   return _deviceName;
 }
 
-EspalexaDeviceProperty EspalexaDevice::getLastChangedProperty()
+PicoalexaDeviceProperty PicoalexaDevice::getLastChangedProperty()
 {
   return _changed;
 }
 
-uint8_t EspalexaDevice::getValue()
+uint8_t PicoalexaDevice::getValue()
 {
   return _val;
 }
 
-bool EspalexaDevice::getState()
+bool PicoalexaDevice::getState()
 {
   return _val;
 }
 
-uint8_t EspalexaDevice::getPercent()
+uint8_t PicoalexaDevice::getPercent()
 {
   uint16_t perc = _val * 100;
   return perc / 255;
 }
 
-uint8_t EspalexaDevice::getDegrees()
+uint8_t PicoalexaDevice::getDegrees()
 {
   return getPercent();
 }
 
-uint16_t EspalexaDevice::getHue()
+uint16_t PicoalexaDevice::getHue()
 {
   return _hue;
 }
 
-uint8_t EspalexaDevice::getSat()
+uint8_t PicoalexaDevice::getSat()
 {
   return _sat;
 }
 
-float EspalexaDevice::getX()
+float PicoalexaDevice::getX()
 {
   return _x;
 }
 
-float EspalexaDevice::getY()
+float PicoalexaDevice::getY()
 {
   return _y;
 }
 
-uint16_t EspalexaDevice::getCt()
+uint16_t PicoalexaDevice::getCt()
 {
   if (_ct == 0) return 500;
   return _ct;
 }
 
-uint32_t EspalexaDevice::getKelvin()
+uint32_t PicoalexaDevice::getKelvin()
 {
   if (_ct == 0) return 2000;
   return 1000000/_ct;
 }
 
-uint32_t EspalexaDevice::getRGB()
+uint32_t PicoalexaDevice::getRGB()
 {
   if (_rgb != 0) return _rgb; //color has not changed
   byte rgb[4]{0, 0, 0, 0};
   
-  if (_mode == EspalexaColorMode::none) return 0;
+  if (_mode == PicoalexaColorMode::none) return 0;
 
-  if (_mode == EspalexaColorMode::ct)
+  if (_mode == PicoalexaColorMode::ct)
   {
     //TODO tweak a bit to match hue lamp characteristics
     //based on https://gist.github.com/paulkaplan/5184275
@@ -149,7 +149,7 @@ uint32_t EspalexaDevice::getRGB()
     rgb[1] = (byte)constrain(g,0.1,255.1);
     rgb[2] = (byte)constrain(b,0.1,255.1);
     
-  } else if (_mode == EspalexaColorMode::hs)
+  } else if (_mode == PicoalexaColorMode::hs)
   {
     float h = ((float)_hue)/65535.0;
     float s = ((float)_sat)/255.0;
@@ -166,7 +166,7 @@ uint32_t EspalexaDevice::getRGB()
       case 4: rgb[0]=t,rgb[1]=p,rgb[2]=255;break;
       case 5: rgb[0]=255,rgb[1]=p,rgb[2]=q;
     }
-  } else if (_mode == EspalexaColorMode::xy)
+  } else if (_mode == PicoalexaColorMode::xy)
   {
     //Source: https://www.developers.meethue.com/documentation/color-conversions-rgb-xy
     float z = 1.0f - _x - _y;
@@ -227,49 +227,49 @@ uint32_t EspalexaDevice::getRGB()
 }
 
 //white channel for RGBW lights. Always 0 unless colormode is ct
-uint8_t EspalexaDevice::getW()
+uint8_t PicoalexaDevice::getW()
 {
   return (getRGB() >> 24) & 0xFF;
 }
 
-uint8_t EspalexaDevice::getR()
+uint8_t PicoalexaDevice::getR()
 {
   return (getRGB() >> 16) & 0xFF;
 }
 
-uint8_t EspalexaDevice::getG()
+uint8_t PicoalexaDevice::getG()
 {
   return (getRGB() >> 8) & 0xFF;
 }
 
-uint8_t EspalexaDevice::getB()
+uint8_t PicoalexaDevice::getB()
 {
   return getRGB() & 0xFF;
 }
 
-uint8_t EspalexaDevice::getLastValue()
+uint8_t PicoalexaDevice::getLastValue()
 {
   if (_val_last == 0) return 255;
   return _val_last;
 }
 
-void EspalexaDevice::setPropertyChanged(EspalexaDeviceProperty p)
+void PicoalexaDevice::setPropertyChanged(PicoalexaDeviceProperty p)
 {
   _changed = p;
 }
 
-void EspalexaDevice::setId(uint8_t id)
+void PicoalexaDevice::setId(uint8_t id)
 {
   _id = id;
 }
 
 //you need to re-discover the device for the Alexa name to change
-void EspalexaDevice::setName(String name)
+void PicoalexaDevice::setName(String name)
 {
   _deviceName = name;
 }
 
-void EspalexaDevice::setValue(uint8_t val)
+void PicoalexaDevice::setValue(uint8_t val)
 {
   if (_val != 0)
   {
@@ -282,7 +282,7 @@ void EspalexaDevice::setValue(uint8_t val)
   _val = val;
 }
 
-void EspalexaDevice::setState(bool onoff)
+void PicoalexaDevice::setState(bool onoff)
 {
   if (onoff) 
   {
@@ -292,7 +292,7 @@ void EspalexaDevice::setState(bool onoff)
   }
 }
 
-void EspalexaDevice::setPercent(uint8_t perc)
+void PicoalexaDevice::setPercent(uint8_t perc)
 {
   uint16_t val = perc * 255;
   val /= 100;
@@ -300,30 +300,30 @@ void EspalexaDevice::setPercent(uint8_t perc)
   setValue(val);
 }
 
-void EspalexaDevice::setColorXY(float x, float y)
+void PicoalexaDevice::setColorXY(float x, float y)
 {
   _x = x;
   _y = y;
   _rgb = 0;
-  _mode = EspalexaColorMode::xy;
+  _mode = PicoalexaColorMode::xy;
 }
 
-void EspalexaDevice::setColor(uint16_t hue, uint8_t sat)
+void PicoalexaDevice::setColor(uint16_t hue, uint8_t sat)
 {
   _hue = hue;
   _sat = sat;
   _rgb = 0;
-  _mode = EspalexaColorMode::hs;
+  _mode = PicoalexaColorMode::hs;
 }
 
-void EspalexaDevice::setColor(uint16_t ct)
+void PicoalexaDevice::setColor(uint16_t ct)
 {
   _ct = ct;
   _rgb = 0;
-  _mode =EspalexaColorMode::ct;
+  _mode =PicoalexaColorMode::ct;
 }
 
-void EspalexaDevice::setColor(uint8_t r, uint8_t g, uint8_t b)
+void PicoalexaDevice::setColor(uint8_t r, uint8_t g, uint8_t b)
 {
   float X = r * 0.664511f + g * 0.154324f + b * 0.162028f;
   float Y = r * 0.283881f + g * 0.668433f + b * 0.047685f;
@@ -331,10 +331,10 @@ void EspalexaDevice::setColor(uint8_t r, uint8_t g, uint8_t b)
   _x = X / (X + Y + Z);
   _y = Y / (X + Y + Z);
   _rgb = ((r << 16) | (g << 8) | b);
-  _mode = EspalexaColorMode::xy;
+  _mode = PicoalexaColorMode::xy;
 }
 
-void EspalexaDevice::doCallback()
+void PicoalexaDevice::doCallback()
 {
   if (_callback != nullptr) {_callback(_val); return;}
   if (_callbackDev != nullptr) {_callbackDev(this); return;}
